@@ -79,6 +79,31 @@ Keeping the second list open is itself a decision (see D-001).
 **Rationale:** A complete, explainable system is worth more for this project than an unfinished complex one. See `MVP_SCOPE.md`.
 **Status:** Active.
 
+### D-012 — Local Database Recommendation: sqflite over Hive
+**Recommendation (Phase 0 / Review 2):** Use `sqflite` (SQLite on Flutter) as the local on-device database for the mobile field app.
+**Rationale:** SQLite provides relational schema integrity, ACID compliance, and direct alignment with central PostgreSQL tables (`patients`, `visits`, `symptoms`), avoiding custom indexing or NoSQL relational emulation.
+**Status:** Recommended baseline for mobile milestone (O-02 partial).
+
+### D-013 — Synchronization Protocol: Client UUIDs and Idempotent Ingestion
+**Recommendation (Phase 0 / Review 2):** Adopt client-generated UUIDs (`client_record_id`) for encounters, transitioning sync states as `PENDING` → `SYNCING` → `SYNCED` (with `FAILED` for retry). Central sync endpoint ingests with `ON CONFLICT (client_record_id) DO NOTHING`.
+**Rationale:** Guarantees zero duplicate records on retries or connection drops, fulfilling NFR-02, NFR-03, and NFR-11 with minimal protocol overhead.
+**Status:** Recommended baseline for sync milestone (O-07 partial).
+
+### D-014 — Central Schema and Migrations: Minimal Versioned SQL
+**Recommendation (Phase 0 / Review 2):** Realise the 8-table physical schema mapped in `REVIEW2_RECONCILIATION.md` §7 via sequential versioned SQL migration scripts (`001_initial_schema.sql`).
+**Rationale:** Keeps database definition explicit, lightweight, and auditable without heavy ORM lock-in.
+**Status:** Recommended baseline for backend milestone.
+
+### D-015 — Security and Secrets: Environment-Driven Secrets & JWT Role Auth
+**Recommendation (Phase 0 / Review 2):** Manage all credentials via environment variables (`.env`, gitignored, with `.env.example` templates). Authenticate API and dashboard access via HTTP-bearer JWT tokens carrying role claims (`health_worker` vs `medical_officer`).
+**Rationale:** Fulfills NFR-04 (no cleartext credentials) while maintaining simple token-based boundary between mobile and oversight actors.
+**Status:** Recommended baseline for backend/dashboard milestones.
+
+### D-016 — Alert Evidence and Explanation Persistence
+**Recommendation (Phase 0 / Review 2):** Explicitly persist `influencing_symptoms` on `visits` and `reasoning`, `contributing_cases`, and `dominant_symptoms` on `alerts`.
+**Rationale:** Guarantees explainability (FR-AI-03, FR-CA-06, NFR-07) survives synchronization, allowing the dashboard officer to inspect exact decision-support evidence without model re-execution.
+**Status:** Recommended baseline for data model and dashboard milestones.
+
 ## 4. Open decisions to resolve
 
 The following remain to be decided, informed by the literature, dataset availability, device limitations, model complexity, development time, team skills, and MVP requirements. Owners and target dates are to be assigned by the team.

@@ -8,15 +8,48 @@
 
 ---
 
-## 👥 Team
+## 👥 Core Project Team
 
-- **M. Faizan Patel**
-- **Yasa Ghanchi**
-- **Niranjan Mohite**
-- **Suaban Shaikh**
+| Member | Role | Key Responsibilities | Core Skills |
+|---|---|---|---|
+| **M. Faizan Patel** | **Project Lead** | • **Product & Architecture:** Solution design and system architecture.<br>• **App Development:** Flutter app and offline-first workflow.<br>• **AI & Analytics:** Symptom classification and disease-pattern analysis.<br>• **Backend & Dashboard:** API, database, and dashboard development.<br>• **Research:** Feasibility, risk assessment, and validation. | Flutter • Python • Machine Learning • React • Node.js • PostgreSQL |
+| **Niranjan Mohite** | **Research & Data Analyst** | • **Data Management:** Dataset preparation and data quality.<br>• **AI Support:** Model testing and performance evaluation.<br>• **Research & Documentation:** Literature review, testing, and project documentation.<br>• **Validation:** Evaluate system outputs using synthetic test data. | Python • Machine Learning • Data Analysis • Dataset Preparation • Model Testing • Research & Documentation |
 
-**Project Duration:** 3–4 months / approximately 16 weeks  
-**Project Stage:** Review 2 / System Design & Implementation Planning
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              M. Faizan Patel                                │
+│                               Project Lead                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Role & Responsibilities                                                    │
+│  • Product & Architecture: Solution design & system architecture            │
+│  • App Development: Flutter app and offline-first workflow                  │
+│  • AI & Analytics: Symptom classification and disease-pattern analysis      │
+│  • Backend & Dashboard: API, database, and dashboard development            │
+│  • Research: Feasibility, risk assessment, and validation                   │
+│                                                                             │
+│  Core Skills                                                                │
+│  Flutter • Python • Machine Learning • React • Node.js • PostgreSQL         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Niranjan Mohite                                │
+│                          Research & Data Analyst                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Role & Responsibilities                                                    │
+│  • Data Management: Dataset preparation and data quality                    │
+│  • AI Support: Model testing and performance evaluation                     │
+│  • Research & Documentation: Literature review, testing & documentation     │
+│  • Validation: Evaluate system outputs using synthetic test data            │
+│                                                                             │
+│  Core Skills                                                                │
+│  Python • Machine Learning • Data Analysis • Dataset Preparation • Testing  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+> **Hackathon Submission:** [**MY Bharat — Hack for a Social Cause**](https://mybharat.gov.in/pages/hack-for-social-cause)  
+> **Initiative:** Vikasit Bharat Young Leaders Dialogue (VBYLD 2027)  
+> **Focus Track:** Healthcare Technology, Low-Connectivity Surveillance, Rural Social Impact  
+> **Repository:** [https://github.com/Faizan960/GramCare-AI-VBYLD-2027](https://github.com/Faizan960/GramCare-AI-VBYLD-2027)
 
 ---
 
@@ -168,47 +201,103 @@ When the configured conditions indicate an unusual pattern, the system generates
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture & Data Flow
 
-GramCare uses two front-ends connected to a shared backend and central database.
+GramCare AI employs an **offline-first, 5-tier architecture** designed to bridge remote rural health workers (ASHAs/ANMs) with public health administrators and medical officers, operating reliably even under zero-connectivity field conditions.
 
-```text
-┌────────────────────────────────────────────────────────────┐
-│                         USERS                              │
-│                                                            │
-│  Health Worker                         Medical Officer     │
-└──────────────┬──────────────────────────┬─────────────────┘
-               │                          │
-               ▼                          ▼
-┌────────────────────────┐      ┌───────────────────────────┐
-│ Flutter Field App      │      │ React Web Dashboard       │
-│ - Patient Records      │      │ - Trends                  │
-│ - Symptoms             │      │ - Maps                    │
-│ - Offline Storage      │      │ - Alerts                  │
-│ - On-device AI         │      │ - Reports                 │
-│ - Synchronization      │      └──────────────┬────────────┘
-└────────────┬───────────┘                     │
-             │                                  │
-             └──────────────┬───────────────────┘
-                            ▼
-                  ┌────────────────────┐
-                  │ Node.js + Express  │
-                  │ Backend / APIs     │
-                  └──────────┬─────────┘
-                             ▼
-                  ┌────────────────────┐
-                  │ AWS RDS PostgreSQL │
-                  │ Central Data       │
-                  └──────────┬─────────┘
-                             ▼
-                  ┌────────────────────┐
-                  │ Analysis & Alerts  │
-                  │ Time / Location /  │
-                  │ Clusters           │
-                  └────────────────────┘
+```mermaid
+flowchart TD
+  subgraph TIER1["Tier 1: Field Mobile Application (Offline-First)"]
+    HW["Community Health Worker / ASHA"] --> APP["Flutter Mobile Application (Android/iOS)"]
+    APP --> DB_LOCAL[("Local Cache: SQLite / Hive")]
+    APP --> AI_EDGE["On-Device AI Engine (Native Dart Tree via m2cgen)"]
+    AI_EDGE -. In-Memory Inference .-> APP
+  end
+
+  subgraph TIER2["Tier 2: Sync and Transport Layer"]
+    APP -. Intermittent 2G/3G Connectivity .-> QUEUE["Offline Sync Queue and Retry Manager"]
+    QUEUE --> IDEMP["Idempotent HTTP Client (UUIDv4 Encounters)"]
+    IDEMP --> API_GW["Node.js + Express REST API Gateway"]
+  end
+
+  subgraph TIER3["Tier 3: Central Backend and Storage"]
+    API_GW --> AUTH["Auth and Access Control (Medical Authority JWT)"]
+    API_GW --> RDS[("AWS RDS PostgreSQL Central Health Data")]
+    API_GW --> AUDIT["Audit Trail and State History Log"]
+  end
+
+  subgraph TIER4["Tier 4: Surveillance and Anomaly Engine"]
+    RDS --> ENGINE["Surveillance Analytics Engine"]
+    ENGINE --> TIME_ANALYSIS["Time Trend Analysis (Moving Avg / Z-Score)"]
+    ENGINE --> SPATIAL_ANALYSIS["Spatial and Symptom Clustering (Geospatial)"]
+    ENGINE --> ALERT_GEN["Potential Outbreak Signal Generator (ALT-001)"]
+  end
+
+  subgraph TIER5["Tier 5: Medical Authority Dashboard (VBYLD 2027)"]
+    API_GW --> DASH["React 18 + Vite 6 Surveillance Portal"]
+    DASH --> CHARTS["Recharts Trend Trajectory (5 -> 7 -> 15)"]
+    DASH --> GIS["Leaflet GIS Illustrated Map (Pulsing Halo and Links)"]
+    DASH --> I18N["Multilingual Engine (English, Hindi, Marathi, Urdu RTL)"]
+    DASH --> THEME["Dynamic Theme System (Light / Dark / System)"]
+    DASH --> DOC_VIEW["Doctor and Health Worker Activity Surveillance"]
+    ALERT_GEN --> DASH
+    MO["Medical Officer / Public Health Authority"] --> DASH
+  end
 ```
 
-The architecture is intentionally separated into field collection, central storage, analysis, and monitoring responsibilities.
+### End-to-End Architectural Tier Breakdown
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                               1. FIELD APPLICATION TIER                                │
+│  • Flutter field app running on budget Android/iOS mobile devices.                     │
+│  • Local persistence via Hive / sqflite (100% offline patient entry & history).        │
+│  • Embedded Decision Tree/Random Forest compiled to native Dart via m2cgen.            │
+│  • Zero remote API dependency during patient triage and clinical encounter entry.      │
+└──────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                           │
+                              Intermittent │ Connectivity (2G/3G/WiFi)
+                                           ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                              2. SYNC & TRANSPORT LAYER                                 │
+│  • Offline sync queue with automatic background detection when connectivity returns.   │
+│  • Idempotent batch upload using client-generated UUIDv4 encounter keys.               │
+│  • Strict status lifecycle: Pending (offline) -> Synced (central store).               │
+│  • Resilient exponential backoff retry policy for poor-quality rural networks.         │
+└──────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                           │
+                               REST JSON   │ Payloads (/api/v1/sync)
+                                           ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                             3. CENTRAL BACKEND & STORAGE                               │
+│  • Node.js & Express REST microservices with rate limiting and CORS protection.        │
+│  • AWS RDS PostgreSQL central normalized database with transactional migrations.       │
+│  • Strict pseudonymity enforcement (GC-PXXXX IDs, zero real patient PII/addresses).    │
+│  • Human review status tracking for medical officer oversight (FR-AU-05).              │
+└──────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                           │
+                                 Aggregated│ Queries & Geospatial Joins
+                                           ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                       4. SURVEILLANCE & OUTBREAK ANALYTICS                             │
+│  • 3-Dimensional Pattern Analysis: Time Trend + Spatial Proximity + Symptom Cluster.   │
+│  • Statistical baseline comparison against historical thresholds (D-007).              │
+│  • Cross-village correlation detection (e.g., Village C hotspot & Village D cluster).  │
+│  • Decision-support evidence generation with contributing encounter references.        │
+└──────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                           │
+                                WebSocket /│ HTTP REST APIs
+                                           ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                     5. MODERN SURVEILLANCE DASHBOARD (REACT 18)                        │
+│  • Responsive React 18 + Vite 6 web application with Recharts & Leaflet GIS.          │
+│  • 4-Language Localization: English (en), Hindi (hi), Marathi (mr), and Urdu (ur).    │
+│  • Native Urdu Right-to-Left (RTL) layout with LTR protection for clinical IDs.        │
+│  • Complete Light, Dark, and OS System-preference appearance theming.                  │
+│  • Dedicated Doctor & Health Worker Activity tab (153 visits across 8 personnel).      │
+│  • Detailed Clinical Encounter and Patient Longitudinal History modals.                │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
